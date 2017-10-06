@@ -1,0 +1,84 @@
+package pdfgenerator;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
+
+public class PDFGenerator {
+	
+	private static String TEMPLATE = "resources/templates/scratch/Certificado Scratch 1 modelo.pdf";
+
+	public static void main(String[] args) throws IOException {
+		
+		List<String> names = Collections.emptyList();
+		
+		String inputFile = args.length > 0 ? args[0]: null;
+		
+		if (inputFile == null) {
+			System.out.println("Arquivo de dados não informado. Usando o modelo scratch1.csv");
+		}
+		
+		if (inputFile == null) {
+			inputFile = "scratch1.csv";
+		}
+		
+		try {
+			names = readFile("resources/input/" + inputFile);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		String outDir = null;
+		
+		try {
+			String path = new File(".").getCanonicalPath();
+			File out = new File(path+ "/out");
+			out.mkdir();
+			outDir = out.getAbsolutePath();
+		} catch (Exception e) {	}
+		
+		String lider = names.get(0);
+
+		PDAcroForm pDAcroForm = null;
+		
+		PDField field = null;
+		
+		for (int i = 1; i < names.size(); i++) {
+			PDDocument pDDocument = PDDocument.load(new File(TEMPLATE)); 
+			pDAcroForm = pDDocument.getDocumentCatalog().getAcroForm();
+			pDAcroForm.setNeedAppearances(false);
+			field =  pDAcroForm.getField("txt_lider");
+			field.setValue(lider);
+			String aluno = names.get(i);
+			field = pDAcroForm.getField("txt_aluno");
+			field.setValue(aluno);
+			//Flatten the document
+			pDAcroForm.flatten();
+			//Save the document
+			pDDocument.save("out/" + aluno + ".pdf");
+			pDDocument.close();
+		}
+		
+		System.out.println(names.size() -1 + " arquivos gerados em: " + outDir);
+		
+	}
+
+	private static List<String> readFile(String file) throws Exception{
+		List<String> names = new ArrayList<>();
+		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+		    for(String line; (line = br.readLine()) != null; ) {
+		       names.add(line);
+		    }
+		}
+		return names;
+	}
+	
+}
