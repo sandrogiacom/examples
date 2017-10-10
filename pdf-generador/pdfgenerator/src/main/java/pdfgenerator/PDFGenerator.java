@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
@@ -69,6 +70,24 @@ public class PDFGenerator {
 		
 		System.out.println(names.size() -1 + " arquivos gerados em: " + outDir);
 		
+		//merge files
+		
+		System.out.println("merge files...");
+		
+		PDFMergerUtility merge = new PDFMergerUtility();
+		File[] files = new File("out").listFiles();
+		System.out.println(files[0].getAbsolutePath());
+		PDDocument destination = PDDocument.load(files[0]);
+		for (int i = 1; i < files.length; i++) {
+			File file = files[i];
+			PDDocument source = PDDocument.load(file);
+			System.out.println(file.getAbsolutePath());
+			merge.appendDocument(destination, source);
+		}
+		
+		merge.mergeDocuments(null);
+		destination.save("out/merge.pdf");
+		destination.close();
 	}
 
 	private static List<String> readFile(String file) throws Exception{
